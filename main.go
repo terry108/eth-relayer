@@ -13,6 +13,7 @@ import (
 	"github.com/terry108/eth-relayer/config"
 	"github.com/terry108/eth-relayer/db"
 	"github.com/terry108/eth-relayer/log"
+	"github.com/terry108/eth-relayer/manager"
 	"github.com/urfave/cli"
 )
 
@@ -129,14 +130,15 @@ func waitToExit() {
 }
 
 func initETHServer(servConfig *config.ServiceConfig, bridgeSDK *http.HTTP, ethereumsdk *ethclient.Client, boltDB *db.BoltDB) {
-	// mgr, err := manager.NewEthereumManager(servConfig, StartHeight, StartForceHeight, bridgeSDK, ethereumsdk, boltDB)
-	// if err != nil {
-	// 	log.Error("initETHServer - eth service start err: %s", err.Error())
-	// 	return
-	// }
-	// go mgr.MonitorChain()
-	// go mgr.MonitorDeposit()
-	// go mgr.CheckDeposit()
+	mgr, err := manager.NewEthereumManager(servConfig, StartHeight, StartForceHeight, bridgeSDK, ethereumsdk, boltDB)
+	if err != nil {
+		log.Error("initETHServer - eth service start err: %s", err.Error())
+		return
+	}
+	_ = mgr
+	go mgr.MonitorChain()
+	go mgr.MonitorDeposit()
+	go mgr.CheckDeposit()
 }
 
 func initPolyServer(servConfig *config.ServiceConfig, bridgeSDK *http.HTTP, ethereumsdk *ethclient.Client, boltDB *db.BoltDB) {
