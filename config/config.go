@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	ETH_MONITOR_INTERVAL  = 15 * time.Second
-	POLY_MONITOR_INTERVAL = 1 * time.Second
+	ETH_MONITOR_INTERVAL    = 15 * time.Second
+	BEIDGE_MONITOR_INTERVAL = 1 * time.Second
 
 	ETH_USEFUL_BLOCK_NUM     = 3
 	ETH_PROOF_USERFUL_BLOCK  = 12

@@ -285,13 +285,10 @@ func (em *EthereumManager) handleNewBlock(height uint64) bool {
 }
 
 func (em *EthereumManager) handleBlockHeader(height uint64) bool {
-	hdr, err := em.client.HeaderByNumber(context.Background(), big.NewInt(int64(height)))
-	if err != nil {
-		log.Errorf("handleBlockHeader - GetNodeHeader on height :%d failed", height)
+	hdrStr := em.getBlockHeader(height)
+	if hdrStr == "" {
 		return false
 	}
-	rawHdr, _ := hdr.MarshalJSON()
-	hdrStr := hex.EncodeToString(rawHdr)
 	// Get eth header in bridge by height
 	latestHeight, err := em.findLastestHeight()
 	if err != nil {
@@ -301,6 +298,16 @@ func (em *EthereumManager) handleBlockHeader(height uint64) bool {
 		em.header4sync = append(em.header4sync, hdrStr)
 	}
 	return true
+}
+
+func (em *EthereumManager) getBlockHeader(height uint64) string {
+	hdr, err := em.client.HeaderByNumber(context.Background(), big.NewInt(int64(height)))
+	if err != nil {
+		log.Errorf("handleBlockHeader - GetNodeHeader on height :%d failed", height)
+		return ""
+	}
+	rawHdr, _ := hdr.MarshalJSON()
+	return hex.EncodeToString(rawHdr)
 }
 
 func (em *EthereumManager) fetchLockDepositEvents(height uint64, client *ethclient.Client) bool {
@@ -565,9 +572,10 @@ func (em *EthereumManager) handleLockDepositEvents(refHeight uint64) error {
 
 // TODO Head Info
 func (em *EthereumManager) commitProof(height uint32, proof []byte, value []byte, txhash []byte) (string, error) {
+	hdrStr := em.getBlockHeader(uint64(height))
 	res, seq, err := em.sendCosmosTx([]types.Msg{
 		ccm.NewMsgProcessCrossChainTx(em.CMAcc, em.config.ETHConfig.SideChainId, hex.EncodeToString(proof),
-			hex.EncodeToString(value), "", ""),
+			hex.EncodeToString(value), "", hdrStr),
 	})
 	if err != nil {
 		log.Fatalf("[commitProof] commitProof error: %v", err)

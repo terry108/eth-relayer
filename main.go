@@ -20,7 +20,7 @@ import (
 var ConfigPath string
 var LogDir string
 var StartHeight uint64
-var PolyStartHeight uint64
+var BridgeStartHeight uint64
 var StartForceHeight uint64
 
 func setupApp() *cli.App {
@@ -63,9 +63,9 @@ func startServer(ctx *cli.Context) {
 	if ethstartforce > 0 {
 		StartForceHeight = ethstartforce
 	}
-	polyStart := ctx.GlobalUint64(cmd.GetFlagName(cmd.PolyStartFlag))
-	if polyStart > 0 {
-		PolyStartHeight = polyStart
+	bridgeStart := ctx.GlobalUint64(cmd.GetFlagName(cmd.BridgeStartFlag))
+	if bridgeStart > 0 {
+		BridgeStartHeight = bridgeStart
 	}
 
 	// read config
@@ -100,7 +100,7 @@ func startServer(ctx *cli.Context) {
 		return
 	}
 
-	initPolyServer(servConfig, bridgeSdk, ethereumSdk, boltDB)
+	initBridgeServer(servConfig, bridgeSdk, ethereumSdk, boltDB)
 	initETHServer(servConfig, bridgeSdk, ethereumSdk, boltDB)
 	waitToExit()
 }
@@ -141,13 +141,13 @@ func initETHServer(servConfig *config.ServiceConfig, bridgeSDK *http.HTTP, ether
 	go mgr.CheckDeposit()
 }
 
-func initPolyServer(servConfig *config.ServiceConfig, bridgeSDK *http.HTTP, ethereumsdk *ethclient.Client, boltDB *db.BoltDB) {
-	// mgr, err := manager.NewPolyManager(servConfig, uint32(PolyStartHeight), polysdk, ethereumsdk, boltDB)
-	// if err != nil {
-	// 	log.Error("initPolyServer - PolyServer service start failed: %v", err)
-	// 	return
-	// }
-	// go mgr.MonitorChain()
+func initBridgeServer(servConfig *config.ServiceConfig, bridgeSDK *http.HTTP, ethereumsdk *ethclient.Client, boltDB *db.BoltDB) {
+	mgr, err := manager.NewBridgeManager(servConfig, BridgeStartHeight, bridgeSDK, ethereumsdk, boltDB)
+	if err != nil {
+		log.Error("initPolyServer - PolyServer service start failed: %v", err)
+		return
+	}
+	go mgr.MonitorChain()
 }
 
 func main() {
